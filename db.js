@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 
 mongoose.set('strictQuery', false);
-// const mongoURI = "mongodb+srv://gmlsdatabase:fUmuZgRFFQ8y4KcO@gmls.pxxkocf.mongodb.net/gmls?retryWrites=true&w=majority&appName=gmls"
-const mongoURI = "mongodb://localhost:27017"
+const mongoURI = "mongodb+srv://germantoursindian:7jpAQvsj7kPC3Kox@gremantours.wqq6f.mongodb.net/gremantours?retryWrites=true&w=majority&appName=gremantours"
 
 const connectToMongo = () => {
     mongoose.connect(mongoURI, () => {

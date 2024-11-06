@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
 
-const SubcategorySchema = new mongoose.Schema({
+const TourSchema = new mongoose.Schema({
     name: {
         type: String,
-        // required: true
     },
-    subDays: {
+    day: {
         type: String,
-        // required: true
     },
     description: {
         type: String
@@ -17,48 +15,53 @@ const SubcategorySchema = new mongoose.Schema({
     }
 });
 
-const BlogsSchema = new mongoose.Schema({
+const SubcategorySchema = new mongoose.Schema({
+    subCategory: {
+        type: String,
+    },
+    subCategorydesc: {
+        type: String,
+    },
+    location: {
+        type: String,
+    },
+    interval: {
+        type: String,
+    },
+    metaTag: {
+        type: String,
+    },
+    metaTitle: {
+        type: String,
+    },
+    metaDesc: {
+        type: String,
+    },
+    subCatimageUrl: {
+        type: String,
+    },
+    about1imageUrl: {
+        type: String,
+    },
+    about2imageUrl: {
+        type: String,
+    },
+    tour: [TourSchema],
+});
+
+const CategorySchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
     category: {
         type: String,
-        required: true
     },
-    categorydesc: {
-        type: String,
-        // required: true
-    },
-    address: {
-        type: String,
-        // required: true
-    },
-    days: {
-        type: String,
-        // required: true
-    },
-    tag: {
-        type: String,
-        required: true
-    },
-    catimageUrl: {
-        type: String,
-        // required: true
-    },
-    about1image: {
-        type: String,
-        // required: true
-    },
-    about2image: {
-        type: String,
-        // required: true
-    },
-    subcategories: [SubcategorySchema],
     date: {
         type: Date,
         default: Date.now
     },
+    subcategory: [SubcategorySchema],
 });
 
-module.exports = mongoose.model('Blogs', BlogsSchema);
+module.exports = mongoose.model('Blogs', CategorySchema);

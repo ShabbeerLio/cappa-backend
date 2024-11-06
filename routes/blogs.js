@@ -30,7 +30,7 @@ const isImage = (req, file, cb) => {
 const upload = multer({
     storage: storage,
     fileFilter: isImage
-});
+   });
 
 // route1 : Get all clients using GET: "/api/blog/fetchallblog" login required
 router.get('/fetchallblog', fetchuser, async (req, res) => {
@@ -43,20 +43,17 @@ router.get('/fetchallblog', fetchuser, async (req, res) => {
     }
 });
 
-// route2 : Add new blog using POST: "/api/blog/addblog" login required
+// route2 : Add new client using POST: "/api/blog/addblog" login required
 router.post('/addblog', fetchuser, upload.single('image'), [
     body('category', 'Enter a valid category').isLength({ min: 3 }),
     body('categorydesc', 'Enter a valid description').isLength({ min: 5 }),
-    body('status', 'Status must be a boolean').optional().isBoolean(),
-    body('draft', 'Draft must be a boolean').optional().isBoolean(),
-    body('publishDate', 'Publish date must be a valid date').optional().isISO8601(),
 ], async (req, res) => {
     try {
-        const { category, categorydesc, tag, subcategories, status, draft, publishDate } = req.body;
-        const catimageUrl = (await cloudinary.uploader.upload(req.file.path)).secure_url;
+        const { category, categorydesc, tag, subcategories } = req.body;
+        const catimageUrl = ((await cloudinary.uploader.upload(req.file.path)).secure_url);
 
         if (!catimageUrl) {
-            return res.status(400).json({ errors: [{ msg: 'Image URL is required' }] })
+            return res.status(400).json({ errors: [{ msg: 'Image URL is required' }] });
         }
 
         const errors = validationResult(req);
@@ -70,9 +67,6 @@ router.post('/addblog', fetchuser, upload.single('image'), [
             tag,
             catimageUrl,
             subcategories,
-            status,
-            draft,
-            publishDate: publishDate ? new Date(publishDate) : undefined,
             user: req.user.id
         });
         const savedBlog = await blog.save();
@@ -84,10 +78,10 @@ router.post('/addblog', fetchuser, upload.single('image'), [
     }
 });
 
-// route3 : Update blog using PUT: "/api/blog/updateblog/:id" login required
+// route3 : Update client using PUT: "/api/blog/updateblog/:id" login required
 router.put('/updateblog/:id', fetchuser, upload.single('image'), async (req, res) => {
-    const { category, categorydesc, tag, subcategories, status, draft ,publishDate  } = req.body;
-    let catimageUrl = null;
+    const { category, categorydesc, tag, subcategories } = req.body;
+    let catimageUrl = null 
 
     try {
         // Upload the image to Cloudinary if a file is provided
@@ -95,26 +89,21 @@ router.put('/updateblog/:id', fetchuser, upload.single('image'), async (req, res
             const result = await cloudinary.uploader.upload(req.file.path);
             catimageUrl = result.secure_url;
         }
-
-        // Create a newBlog object 
+        // Create a newClient object 
         const newBlog = {};
-        if (category) newBlog.category = category;
-        if (categorydesc) newBlog.categorydesc = categorydesc;
-        if (tag) newBlog.tag = tag;
+        if (category) { newBlog.category = category; }
+        if (categorydesc) { newBlog.categorydesc = categorydesc };
+        if (tag) { newBlog.tag = tag };
         if (catimageUrl) newBlog.catimageUrl = catimageUrl;
-        if (subcategories) newBlog.subcategories = subcategories;
-        if (typeof status !== 'undefined') newBlog.status = status;
-        if (typeof draft !== 'undefined') newBlog.draft = draft;
-        if (publishDate) newBlog.publishDate = new Date(publishDate);
+        if (subcategories) { newBlog.subcategories = subcategories; }
 
         // Find the blog to be updated and update it
         let blog = await Client.findById(req.params.id);
         if (!blog) {
             return res.status(404).send("Not Found");
         }
-
         if (blog.user.toString() !== req.user.id) {
-            return res.status(401).send("Not Allowed");
+            return res.status(404).send("Not Allowed");
         }
 
         blog = await Client.findByIdAndUpdate(req.params.id, { $set: newBlog }, { new: true });

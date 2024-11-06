@@ -16,13 +16,13 @@ app.use(express.static(__dirname));
 
 // Available routes
 app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/blog', require('./routes/blogs'));
+app.use('/api/blog', require('./routes/blogs'));
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to backend of cappa' });
+    res.json({ message: 'Hello MERN Stack!' });
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`cappa backend listening on port ${PORT}`);
+    console.log(`Gmls backend listening on port ${PORT}`);
 });
