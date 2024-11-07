@@ -17,6 +17,7 @@ app.use(express.static(__dirname));
 // Available routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/blog', require('./routes/blogs'));
+app.use('/api/category', require('./routes/category'));
 
 app.get('/', (req, res) => {
     res.json({ message: 'Hello MERN Stack!' });
