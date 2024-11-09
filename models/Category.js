@@ -10,9 +10,9 @@ const TourSchema = new mongoose.Schema({
     description: {
         type: String
     },
-    // imageUrl: {
-    //     type: String
-    // }
+    imageUrl: {
+        type: String
+    }
 });
 
 const SubcategorySchema = new mongoose.Schema({
@@ -37,15 +37,15 @@ const SubcategorySchema = new mongoose.Schema({
     metaDesc: {
         type: String,
     },
-    // subCatimageUrl: {
-    //     type: String,
-    // },
-    // about1imageUrl: {
-    //     type: String,
-    // },
-    // about2imageUrl: {
-    //     type: String,
-    // },
+    subCatimageUrl: {
+        type: String,
+    },
+    about1imageUrl: {
+        type: String,
+    },
+    about2imageUrl: {
+        type: String,
+    },
     tour: [TourSchema],
 });
 

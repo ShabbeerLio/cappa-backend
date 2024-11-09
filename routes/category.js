@@ -9,21 +9,20 @@ const fs = require('fs');
 const cloudinary = require("../helper/cloudinaryconfig")
 
 // Ensure the uploads directory exists
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, "./uploads");
     },
     filename: function (req, file, cb) {
-        cb(null, `image-${Date.now()}.${file.originalname}`);
+        cb(null, `image-${Date.now()}-${file.originalname}`);
     }
 });
 
 const isImage = (req, file, cb) => {
     if (file.mimetype.startsWith("image")) {
-        cb(null, true)
+        cb(null, true);
     } else {
-        cb(new Error("only image is allowed"))
+        cb(new Error("Only images are allowed"));
     }
 }
 
@@ -31,6 +30,7 @@ const upload = multer({
     storage: storage,
     fileFilter: isImage
 });
+
 
 // route1 : Get all category using GET: "/api/category/fetchallcategory" login required
 router.get('/fetchallcategory', fetchuser, async (req, res) => {
@@ -130,22 +130,36 @@ router.get('/:categoryId/getsubcategory', fetchuser, async (req, res) => {
     }
 });
 
-// Add Subcategory ROUTE: /api/category/:id/subcategories
-router.post('/:clientId/subcategories', async (req, res) => {
+// Add Subcategory ROUTE: /api/category/:id/subcategories 
+router.post('/:clientId/subcategories', upload.fields([
+    { name: 'subCatImage', maxCount: 1 },
+    { name: 'about1Image', maxCount: 1 },
+    { name: 'about2Image', maxCount: 1 }
+]), async (req, res) => {
     try {
         const client = await Client.findById(req.params.clientId);
         if (!client) {
-            return res.status(404).json({ error: "category not found" });
+            return res.status(404).json({ error: "Category not found" });
         }
 
         const { subCategory, subCategorydesc, location, interval, metaTag, metaTitle, metaDesc } = req.body;
-        // const imageUrl = ((await cloudinary.uploader.upload(req.file.path)).secure_url);
 
-        // if (!imageUrl) {
-        //     return res.status(400).json({ errors: [{ msg: 'Subcategory image URL is required' }] });
-        // }
+        const subCatimageUrl = (await cloudinary.uploader.upload(req.files['subCatImage'][0].path)).secure_url;
+        const about1imageUrl = (await cloudinary.uploader.upload(req.files['about1Image'][0].path)).secure_url;
+        const about2imageUrl = (await cloudinary.uploader.upload(req.files['about2Image'][0].path)).secure_url;
 
-        client.subcategories.push({ subCategory, subCategorydesc, location, interval, metaTag, metaTitle, metaDesc, });
+        client.subcategories.push({
+            subCategory,
+            subCategorydesc,
+            location,
+            interval,
+            metaTag,
+            metaTitle,
+            metaDesc,
+            subCatimageUrl,
+            about1imageUrl,
+            about2imageUrl
+        });
         await client.save();
 
         res.status(201).json({ message: "Subcategory added successfully" });
@@ -156,43 +170,67 @@ router.post('/:clientId/subcategories', async (req, res) => {
 });
 
 
-// Edit Subcategory ROUTE: /api/category/:clientId/subcategories/:subcategoryId
-router.put('/:clientId/subcategories/:subcategoryId', async (req, res) => {
-    try {
-        const client = await Client.findById(req.params.clientId);
-        if (!client) {
-            return res.status(404).json({ error: "subcategory not found" });
+router.put('/:clientId/subcategories/:subcategoryId',
+    upload.fields([
+        { name: 'subCatImage', maxCount: 1 },
+        { name: 'about1Image', maxCount: 1 },
+        { name: 'about2Image', maxCount: 1 }
+    ]), async (req, res) => {
+        try {
+            // Find the client by clientId
+            const client = await Client.findById(req.params.clientId);
+            if (!client) {
+                return res.status(404).json({ error: "Client not found" });
+            }
+
+            // Destructure data from request body
+            const { subCategory, subCategorydesc, location, interval, metaTag, metaTitle, metaDesc } = req.body;
+            // Find the subcategory by subcategoryId
+            const subcategory = client.subcategories.find(sub => sub._id.toString() === req.params.subcategoryId);
+
+            if (subcategory) {
+                // Update the subcategory fields if new data is provided
+                subcategory.subCategory = subCategory || subcategory.subCategory;
+                subcategory.subCategorydesc = subCategorydesc || subcategory.subCategorydesc;
+                subcategory.location = location || subcategory.location;
+                subcategory.interval = interval || subcategory.interval;
+                subcategory.metaTag = metaTag || subcategory.metaTag;
+                subcategory.metaTitle = metaTitle || subcategory.metaTitle;
+                subcategory.metaDesc = metaDesc || subcategory.metaDesc;
+
+                // Handle image uploads separately if files are provided
+                if (req.files) {
+                    // Check and upload subCatImage if it's provided
+                    if (req.files.subCatImage) {
+                        const subCatImageResult = await cloudinary.uploader.upload(req.files.subCatImage[0].path);
+                        subcategory.subCatImageUrl = subCatImageResult.secure_url;
+                    }
+
+                    // Check and upload about1Image if it's provided
+                    if (req.files.about1Image) {
+                        const about1ImageResult = await cloudinary.uploader.upload(req.files.about1Image[0].path);
+                        subcategory.about1ImageUrl = about1ImageResult.secure_url;
+                    }
+
+                    // Check and upload about2Image if it's provided
+                    if (req.files.about2Image) {
+                        const about2ImageResult = await cloudinary.uploader.upload(req.files.about2Image[0].path);
+                        subcategory.about2ImageUrl = about2ImageResult.secure_url;
+                    }
+                }
+
+                // Save the updated client document
+                await client.save();
+                res.json({ message: "Subcategory updated successfully" });
+            } else {
+                res.status(404).json({ error: "Subcategory not found" });
+            }
+        } catch (error) {
+            console.error("Error updating subcategory detail:", error);
+            res.status(500).json({ error: "Internal Server Error" });
         }
+    });
 
-        const { subCategory, subCategorydesc, location, interval, metaTag, metaTitle, metaDesc } = req.body;
-        const subcategory = client.subcategories.find(sub => sub._id.toString() === req.params.subcategoryId);
-        if (subcategory) {
-            subcategory.subCategory = subCategory || subcategory.subCategory;
-            subcategory.subCategorydesc = subCategorydesc || subcategory.subCategorydesc;
-            subcategory.location = location || subcategory.location;
-            subcategory.interval = interval || subcategory.interval;
-            subcategory.metaTag = metaTag || subcategory.metaTag;
-            subcategory.metaTitle = metaTitle || subcategory.metaTitle;
-            subcategory.metaDesc = metaDesc || subcategory.metaDesc;
-
-            // if (req.file) {
-            //     const result = await cloudinary.uploader.upload(req.file.path);
-            //     subcategory.imageUrl = result.secure_url;
-            // }
-            // if (req.file) {
-            //     subcategory.imageUrl = ((await cloudinary.uploader.upload(req.file.path)).secure_url);
-            // }
-
-            await client.save();
-            res.json({ message: "subcategory updated successfully" });
-        } else {
-            res.status(404).json({ error: "subcategory not found" });
-        }
-    } catch (error) {
-        console.error("Error updating subcategory detail:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
 
 
 
@@ -221,38 +259,47 @@ router.delete('/:clientId/subcategories/:subcategoryId', async (req, res) => {
 
 
 // Add tour ROUTE: /api/category/:id/subcategories/:subcategoryId/tour
-router.post('/:clientId/subcategories/:subcategoryId/tour', async (req, res) => {
+router.post('/:clientId/subcategories/:subcategoryId/tour', upload.single('image'), async (req, res) => {
     try {
+        // Find the client by ID
         const client = await Client.findById(req.params.clientId);
         if (!client) {
             return res.status(404).json({ error: "Client not found" });
         }
+
+        // Find the subcategory by ID
         const subcategory = client.subcategories.id(req.params.subcategoryId);
         if (!subcategory) {
             return res.status(404).json({ error: "Subcategory not found" });
         }
         const { name, day, description } = req.body;
-
         // Optional image upload
-        // let imageUrl;
-        // if (req.file) {
-        //     imageUrl = (await cloudinary.uploader.upload(req.file.path)).secure_url;
-        // } else {
-        //     return res.status(400).json({ error: "Tour image URL is required" });
-        // }
+        let imageUrl;
+        if (req.file) {
+            // Upload the image to Cloudinary and get the secure URL
+            imageUrl = (await cloudinary.uploader.upload(req.file.path)).secure_url;
+        } else {
+            // Respond with an error if no image is provided
+            return res.status(400).json({ error: "Tour image URL is required" });
+        }
 
-        subcategory.tour.push({ name, day, description /*, imageUrl */ });
+        // Push the tour details to the subcategory's tour array
+        subcategory.tour.push({ name, day, description, imageUrl });
+
+        // Save the client document with the updated subcategory
         await client.save();
 
-        res.status(201).json({ message: "Tour added successfully", tour: { name, day, description /*, imageUrl */ } });
+        // Respond with success message and tour details
+        res.status(201).json({ message: "Tour added successfully", tour: { name, day, description, imageUrl } });
     } catch (error) {
         console.error("Error adding tour:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
+
 // Edit tour ROUTE: /api/category/:id/subcategories/:subcategoryId/tour/:tourId
-router.put('/:clientId/subcategories/:subcategoryId/tour/:tourId', async (req, res) => {
+router.put('/:clientId/subcategories/:subcategoryId/tour/:tourId',upload.single('image'), async (req, res) => {
     try {
         const client = await Client.findById(req.params.clientId);
         if (!client) {
@@ -273,10 +320,10 @@ router.put('/:clientId/subcategories/:subcategoryId/tour/:tourId', async (req, r
         tour.description = description || tour.description;
 
         // Optional image upload handling
-        // if (req.file) {
-        //     const result = await cloudinary.uploader.upload(req.file.path);
-        //     tour.imageUrl = result.secure_url;
-        // }
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path);
+            tour.imageUrl = result.secure_url;
+        }
 
         // Save the changes to the client document
         await client.save();
