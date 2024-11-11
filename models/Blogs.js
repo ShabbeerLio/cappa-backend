@@ -1,11 +1,9 @@
 const mongoose = require('mongoose');
 
-const TourSchema = new mongoose.Schema({
+const SubcategorySchema = new mongoose.Schema({
     name: {
         type: String,
-    },
-    day: {
-        type: String,
+        // required: true
     },
     description: {
         type: String
@@ -15,53 +13,44 @@ const TourSchema = new mongoose.Schema({
     }
 });
 
-const SubcategorySchema = new mongoose.Schema({
-    subCategory: {
-        type: String,
-    },
-    subCategorydesc: {
-        type: String,
-    },
-    location: {
-        type: String,
-    },
-    interval: {
-        type: String,
-    },
-    metaTag: {
-        type: String,
-    },
-    metaTitle: {
-        type: String,
-    },
-    metaDesc: {
-        type: String,
-    },
-    subCatimageUrl: {
-        type: String,
-    },
-    about1imageUrl: {
-        type: String,
-    },
-    about2imageUrl: {
-        type: String,
-    },
-    tour: [TourSchema],
-});
-
-const CategorySchema = new mongoose.Schema({
+const BlogsSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
     category: {
         type: String,
+        required: true
     },
+    categorydesc: {
+        type: String,
+        // required: true
+    },
+    tag: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: Boolean,
+        default: true
+    },
+    draft: {
+        type: Boolean,
+        default: false
+    },
+    catimageUrl: {
+        type: String,
+        // required: true
+    },
+    publishDate: {
+        type: Date,
+        required: false
+    },
+    subcategories: [SubcategorySchema],
     date: {
         type: Date,
         default: Date.now
     },
-    subcategory: [SubcategorySchema],
 });
 
-module.exports = mongoose.model('Blogs', CategorySchema);
+module.exports = mongoose.model('Blogs', BlogsSchema);
