@@ -20,7 +20,7 @@ const BlogsSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        required: true
+        // required: true
     },
     categorydesc: {
         type: String,
@@ -28,11 +28,11 @@ const BlogsSchema = new mongoose.Schema({
     },
     tag: {
         type: String,
-        required: true
+        // required: true
     },
     status: {
         type: Boolean,
-        default: true
+        // default: true
     },
     draft: {
         type: Boolean,
@@ -44,7 +44,7 @@ const BlogsSchema = new mongoose.Schema({
     },
     publishDate: {
         type: Date,
-        required: false
+        // required: false
     },
     subcategories: [SubcategorySchema],
     date: {
